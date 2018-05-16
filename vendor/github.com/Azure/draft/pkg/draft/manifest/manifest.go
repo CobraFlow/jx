@@ -25,17 +25,22 @@ type Manifest struct {
 
 // Environment represents the environment for a given app at build time
 type Environment struct {
-	Name          string   `toml:"name,omitempty"`
-	Registry      string   `toml:"registry,omitempty"`
-	BuildTarPath  string   `toml:"build-tar,omitempty"`
-	ChartTarPath  string   `toml:"chart-tar,omitempty"`
-	Namespace     string   `toml:"namespace,omitempty"`
-	Values        []string `toml:"set,omitempty"`
-	Wait          bool     `toml:"wait"`
-	Watch         bool     `toml:"watch"`
-	WatchDelay    int      `toml:"watch-delay,omitempty"`
-	OverridePorts []string `toml:"override-ports,omitempty"`
-	AutoConnect   bool     `toml:"auto-connect"`
+	Name              string   `toml:"name,omitempty"`
+	ContainerBuilder  string   `toml:"container-builder,omitempty"`
+	Registry          string   `toml:"registry,omitempty"`
+	ResourceGroupName string   `toml:"resource-group-name,omitempty"`
+	BuildTarPath      string   `toml:"build-tar,omitempty"`
+	ChartTarPath      string   `toml:"chart-tar,omitempty"`
+	Namespace         string   `toml:"namespace,omitempty"`
+	Values            []string `toml:"set,omitempty"`
+	Wait              bool     `toml:"wait"`
+	Watch             bool     `toml:"watch"`
+	WatchDelay        int      `toml:"watch-delay,omitempty"`
+	OverridePorts     []string `toml:"override-ports,omitempty"`
+	AutoConnect       bool     `toml:"auto-connect"`
+	CustomTags        []string `toml:"custom-tags,omitempty"`
+	Dockerfile        string   `toml:"dockerfile"`
+	Chart             string   `toml:"chart"`
 }
 
 // New creates a new manifest with the Environments intialized.
@@ -46,6 +51,7 @@ func New() *Manifest {
 	m.Environments[DefaultEnvironmentName] = &Environment{
 		Name:        generateName(),
 		Namespace:   DefaultNamespace,
+		Wait:        true,
 		Watch:       false,
 		WatchDelay:  DefaultWatchDelaySeconds,
 		AutoConnect: false,

@@ -276,6 +276,7 @@ func (p *GiteaProvider) UpdatePullRequestStatus(pr *GitPullRequest) error {
 	if err != nil {
 		return fmt.Errorf("Could not find pull request for %s/%s #%d: %s", pr.Owner, pr.Repo, n, err)
 	}
+	pr.Author = result.Poster.UserName
 	merged := result.HasMerged
 	pr.Merged = &merged
 	pr.Mergeable = &result.Mergeable
@@ -592,6 +593,10 @@ func (p *GiteaProvider) Label() string {
 
 func (p *GiteaProvider) ServerURL() string {
 	return p.Server.URL
+}
+
+func (p *GiteaProvider) UserAuth() auth.UserAuth {
+	return p.User
 }
 
 func (p *GiteaProvider) CurrentUsername() string {

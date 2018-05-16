@@ -81,6 +81,7 @@ func NewCmdCreateClusterAWS(f cmdutil.Factory, out io.Writer, errOut io.Writer) 
 	}
 
 	options.addCreateClusterFlags(cmd)
+	options.addCommonFlags(cmd)
 
 	cmd.Flags().BoolVarP(&options.Flags.UseRBAC, "rbac", "r", true, "whether to enable RBAC on the Kubernetes cluster")
 	cmd.Flags().StringVarP(&options.Flags.ClusterName, optionClusterName, "n", "aws1", "The name of this cluster.")
@@ -107,14 +108,13 @@ func (o *CreateClusterAWSOptions) Run() error {
 
 	flags := &o.Flags
 
-	nodeCount := flags.NodeCount
-	if nodeCount == "" {
+	if flags.NodeCount == "" {
 		prompt := &survey.Input{
 			Message: "nodes",
 			Default: "3",
 			Help:    "number of nodes",
 		}
-		survey.AskOne(prompt, &nodeCount, nil)
+		survey.AskOne(prompt, &flags.NodeCount, nil)
 	}
 
 	/*
@@ -177,7 +177,7 @@ func (o *CreateClusterAWSOptions) Run() error {
 	}
 
 	// TODO allow add custom args?
-
+	log.Info("Creating cluster...\n")
 	o.Printf("running command: %s\n", util.ColorInfo("kops "+strings.Join(args, " ")))
 	err = o.runCommand("kops", args...)
 	if err != nil {
@@ -212,9 +212,15 @@ func (o *CreateClusterAWSOptions) Run() error {
 	}
 
 	o.Printf("\n")
-	o.runCommand("kops", "validate", "cluster")
+	o.Printf("Validating kops cluster state...\n")
+	err = o.runCommand("kops", "validate", "cluster")
+	if err != nil {
+		return fmt.Errorf("Failed to successfully validate kops cluster state: %s\n", err)
+	}
+	o.Printf("State of kops cluster: OK\n")
 	o.Printf("\n")
 
+	log.Info("Initialising cluster ...\n")
 	return o.initAndInstall(AWS)
 }
 

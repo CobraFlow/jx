@@ -12,6 +12,7 @@ import (
 	"github.com/jenkins-x/draft-repo/pkg/draft/pack"
 	"github.com/jenkins-x/golang-jenkins"
 	"github.com/jenkins-x/jx/pkg/auth"
+	"github.com/jenkins-x/jx/pkg/config"
 	jxdraft "github.com/jenkins-x/jx/pkg/draft"
 	"github.com/jenkins-x/jx/pkg/gits"
 	"github.com/jenkins-x/jx/pkg/jenkins"
@@ -406,16 +407,25 @@ func (o *ImportOptions) DraftCreate() error {
 	pomName := filepath.Join(dir, "pom.xml")
 	gradleName := filepath.Join(dir, "build.gradle")
 	lpack := ""
-	if len(o.DraftPack) > 0 {
-		log.Info("trying to use draft pack: " + o.DraftPack + "\n")
-		lpack = filepath.Join(draftHome.Packs(), "github.com/jenkins-x/draft-packs/packs/"+o.DraftPack)
+	customDraftPack := o.DraftPack
+	if len(customDraftPack) == 0 {
+		projectConfig, _, err := config.LoadProjectConfig(dir)
+		if err != nil {
+			return err
+		}
+		customDraftPack = projectConfig.BuildPack
+	}
+
+	if len(customDraftPack) > 0 {
+		log.Info("trying to use draft pack: " + customDraftPack + "\n")
+		lpack = filepath.Join(draftHome.Packs(), "github.com/jenkins-x/draft-packs/packs/"+customDraftPack)
 		f, err := util.FileExists(lpack)
 		if err != nil {
 			log.Error(err.Error())
 			return err
 		}
 		if f == false {
-			log.Error("Could not find pack: " + o.DraftPack + " going to try detect which pack to use")
+			log.Error("Could not find pack: " + customDraftPack + " going to try detect which pack to use")
 			lpack = ""
 		}
 
@@ -428,8 +438,10 @@ func (o *ImportOptions) DraftCreate() error {
 				return err
 			}
 			if len(pack) > 0 {
-				if pack == cmdutil.Liberty {
+				if pack == cmdutil.LIBERTY {
 					lpack = filepath.Join(draftHome.Packs(), "github.com/jenkins-x/draft-packs/packs/liberty")
+				} else if pack == cmdutil.APPSERVER {
+					lpack = filepath.Join(draftHome.Packs(), "github.com/jenkins-x/draft-packs/packs/appserver")
 				} else {
 					log.Warn("Do not know how to handle pack: " + pack)
 				}
@@ -453,7 +465,7 @@ func (o *ImportOptions) DraftCreate() error {
 			}
 		}
 	}
-	log.Info("selected pack: " + lpack + "\n")
+	log.Success("selected pack: " + lpack + "\n")
 	chartsDir := filepath.Join(dir, "charts")
 	jenkinsfileExists, err := util.FileExists(jenkinsfile)
 	exists, err := util.FileExists(chartsDir)

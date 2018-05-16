@@ -263,7 +263,7 @@ func (b *BitbucketCloudProvider) ValidateRepositoryName(org string, name string)
 		name,
 	)
 
-	if r.StatusCode == 404 {
+	if r != nil && r.StatusCode == 404 {
 		return nil
 	}
 
@@ -357,7 +357,7 @@ func (b *BitbucketCloudProvider) UpdatePullRequestStatus(pr *GitPullRequest) err
 	bitbucketPR, _, err := b.Client.PullrequestsApi.RepositoriesUsernameRepoSlugPullrequestsPullRequestIdGet(
 		b.Context,
 		b.Username,
-		pr.Repo,
+		strings.TrimPrefix(pr.Repo, b.Username+"/"),
 		prID,
 	)
 
@@ -368,6 +368,7 @@ func (b *BitbucketCloudProvider) UpdatePullRequestStatus(pr *GitPullRequest) err
 	pr.State = &bitbucketPR.State
 	pr.Title = bitbucketPR.Title
 	pr.Body = bitbucketPR.Summary.Raw
+	pr.Author = bitbucketPR.Author.Username
 
 	if bitbucketPR.MergeCommit != nil {
 		pr.MergeCommitSHA = &bitbucketPR.MergeCommit.Hash
@@ -378,7 +379,7 @@ func (b *BitbucketCloudProvider) UpdatePullRequestStatus(pr *GitPullRequest) err
 		b.Context,
 		b.Username,
 		strconv.FormatInt(int64(prID), 10),
-		pr.Repo,
+		strings.TrimPrefix(pr.Repo, b.Username+"/"),
 	)
 
 	if err != nil {
@@ -394,13 +395,24 @@ func (b *BitbucketCloudProvider) UpdatePullRequestStatus(pr *GitPullRequest) err
 }
 
 func (p *BitbucketCloudProvider) GetPullRequest(owner, repo string, number int) (*GitPullRequest, error) {
-	pr := &GitPullRequest{
-		Owner:  owner,
-		Repo:   repo,
-		Number: &number,
+	pr, _, err := p.Client.PullrequestsApi.RepositoriesUsernameRepoSlugPullrequestsPullRequestIdGet(
+		p.Context,
+		owner,
+		repo,
+		int32(number),
+	)
+
+	if err != nil {
+		return nil, err
 	}
-	err := p.UpdatePullRequestStatus(pr)
-	return pr, err
+
+	return &GitPullRequest{
+		URL:    pr.Links.Html.Href,
+		Owner:  pr.Author.Username,
+		Repo:   pr.Destination.Repository.FullName,
+		Number: &number,
+		State:  &pr.State,
+	}, nil
 }
 
 func (b *BitbucketCloudProvider) PullRequestLastCommitStatus(pr *GitPullRequest) (string, error) {
@@ -411,7 +423,7 @@ func (b *BitbucketCloudProvider) PullRequestLastCommitStatus(pr *GitPullRequest)
 		result, _, err := b.Client.CommitstatusesApi.RepositoriesUsernameRepoSlugCommitNodeStatusesGet(
 			b.Context,
 			b.Username,
-			pr.Repo,
+			strings.TrimPrefix(pr.Repo, b.Username+"/"),
 			pr.LastCommitSha,
 		)
 
@@ -488,7 +500,7 @@ func (b *BitbucketCloudProvider) MergePullRequest(pr *GitPullRequest, message st
 		b.Context,
 		b.Username,
 		strconv.FormatInt(int64(*pr.Number), 10),
-		pr.Repo,
+		strings.TrimPrefix(pr.Repo, b.Username+"/"),
 		options,
 	)
 
@@ -673,7 +685,7 @@ func (b *BitbucketCloudProvider) Kind() string {
 
 // Exposed by Jenkins plugin; this one is for https://wiki.jenkins.io/display/JENKINS/BitBucket+Plugin
 func (b *BitbucketCloudProvider) JenkinsWebHookPath(gitURL string, secret string) string {
-	return "/bitbucket-hook/"
+	return "/bitbucket-scmsource-hook/notify"
 }
 
 func (b *BitbucketCloudProvider) Label() string {
@@ -686,6 +698,10 @@ func (b *BitbucketCloudProvider) ServerURL() string {
 
 func (p *BitbucketCloudProvider) CurrentUsername() string {
 	return p.Username
+}
+
+func (p *BitbucketCloudProvider) UserAuth() auth.UserAuth {
+	return p.User
 }
 
 func (p *BitbucketCloudProvider) UserInfo(username string) *v1.UserSpec {

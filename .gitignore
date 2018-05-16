@@ -14,7 +14,10 @@
 .glide/
 
 .idea/
+*.iml
+
+.vscode/
 
 build/
-
+release/
 .updatebot-repos/

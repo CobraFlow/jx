@@ -6,6 +6,7 @@ import (
 	cmdutil "github.com/jenkins-x/jx/pkg/jx/cmd/util"
 
 	"github.com/jenkins-x/jx/pkg/jx/cmd/templates"
+	"github.com/jenkins-x/jx/pkg/version"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -103,10 +104,11 @@ func NewJXCommand(f cmdutil.Factory, in io.Reader, out, err io.Writer) *cobra.Co
 			Message: "Working with Applications:",
 			Commands: []*cobra.Command{
 				NewCmdConsole(f, out, err),
-				NewCmdCDX(f, out, err),
+				NewCmdCloudBees(f, out, err),
 				NewCmdLogs(f, out, err),
 				NewCmdOpen(f, out, err),
 				NewCmdRsh(f, out, err),
+				NewCmdSync(f, out, err),
 			},
 		},
 		{
@@ -134,6 +136,8 @@ func NewJXCommand(f cmdutil.Factory, in io.Reader, out, err io.Writer) *cobra.Co
 	groups.Add(cmds)
 
 	cmds.AddCommand(NewCmdVersion(f, out, err))
+	cmds.Version = version.GetVersion()
+	cmds.SetVersionTemplate("{{printf .Version}}\n")
 
 	filters := []string{"options"}
 

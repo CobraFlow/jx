@@ -11,6 +11,7 @@ import (
 	"github.com/jenkins-x/golang-jenkins"
 	"github.com/jenkins-x/jx/pkg/auth"
 	"github.com/jenkins-x/jx/pkg/client/clientset/versioned"
+
 	"github.com/jenkins-x/jx/pkg/jx/cmd/table"
 	cmdutil "github.com/jenkins-x/jx/pkg/jx/cmd/util"
 	"github.com/jenkins-x/jx/pkg/kube"
@@ -22,8 +23,11 @@ import (
 )
 
 const (
-	optionServerName = "name"
-	optionServerURL  = "url"
+	optionServerName        = "name"
+	optionServerURL         = "url"
+	exposecontrollerVersion = "2.3.56"
+	exposecontroller        = "exposecontroller"
+	exposecontrollerChart   = "chartmuseum/exposecontroller"
 )
 
 // CommonOptions contains common options and helper methods
@@ -193,6 +197,9 @@ func (o *CommonOptions) findServer(config *auth.AuthConfig, serverFlags *ServerF
 	if serverFlags.ServerURL != "" {
 		server = config.GetServer(serverFlags.ServerURL)
 		if server == nil {
+			if lazyCreate {
+				return config.GetOrCreateServerName(serverFlags.ServerURL, serverFlags.ServerName, kind), nil
+			}
 			return nil, util.InvalidOption(optionServerURL, serverFlags.ServerURL, config.GetServerURLs())
 		}
 	}
@@ -401,8 +408,8 @@ func (o *CommonOptions) retryQuiet(attempts int, sleep time.Duration, call func(
 	return fmt.Errorf("after %d attempts, last error: %s", attempts, err)
 }
 
-func (o *CommonOptions) getJobMap(filter string) (map[string]*gojenkins.Job, error) {
-	jobMap := map[string]*gojenkins.Job{}
+func (o *CommonOptions) getJobMap(filter string) (map[string]gojenkins.Job, error) {
+	jobMap := map[string]gojenkins.Job{}
 	jenkins, err := o.JenkinsClient()
 	if err != nil {
 		return jobMap, err
@@ -415,17 +422,18 @@ func (o *CommonOptions) getJobMap(filter string) (map[string]*gojenkins.Job, err
 	return jobMap, nil
 }
 
-func (o *CommonOptions) addJobs(jobMap *map[string]*gojenkins.Job, filter string, prefix string, jobs []gojenkins.Job) {
+func (o *CommonOptions) addJobs(jobMap *map[string]gojenkins.Job, filter string, prefix string, jobs []gojenkins.Job) {
 	jenkins, err := o.JenkinsClient()
 	if err != nil {
 		return
 	}
+
 	for _, j := range jobs {
 		name := jobName(prefix, &j)
-
 		if IsPipeline(&j) {
 			if filter == "" || strings.Contains(name, filter) {
-				(*jobMap)[name] = &j
+				(*jobMap)[name] = j
+				continue
 			}
 		}
 		if j.Jobs != nil {
@@ -479,4 +487,36 @@ func (o *CommonOptions) pickRemoteURL(config *gitcfg.Config) (string, error) {
 		}
 	}
 	return url, nil
+}
+
+// todo switch to using exposecontroller as a jx plugin
+// get existing config from the devNamespace and run exposecontroller in the target environment
+func (o *CommonOptions) expose(devNamespace, targetNamespace, releaseName string) error {
+
+	exposecontrollerConfig, err := kube.GetTeamExposecontrollerConfig(o.kubeClient, devNamespace)
+	if err != nil {
+		return fmt.Errorf("cannot get existing team exposecontroller config from namespace %s: %v", devNamespace, err)
+	}
+
+	var exValues []string
+	if targetNamespace != devNamespace {
+		// run exposecontroller using existing team config
+		exValues = []string{
+			"config.exposer=" + exposecontrollerConfig["exposer"],
+			"config.domain=" + exposecontrollerConfig["domain"],
+			"config.http=" + exposecontrollerConfig["http"],
+			"config.tls-acme=" + exposecontrollerConfig["tls-acme"],
+		}
+	}
+
+	err = o.installChart("expose"+releaseName, exposecontrollerChart, exposecontrollerVersion, targetNamespace, true, exValues)
+	if err != nil {
+		return fmt.Errorf("exposecontroller deployment failed: %v", err)
+	}
+	err = kube.WaitForJobToSucceeded(o.kubeClient, targetNamespace, exposecontroller, 5*time.Minute)
+	if err != nil {
+		return fmt.Errorf("failed waiting for exposecontroller job to succeed: %v", err)
+	}
+	return kube.DeleteJob(o.kubeClient, targetNamespace, exposecontroller)
+
 }

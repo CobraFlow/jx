@@ -3,7 +3,6 @@ package gits
 import (
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -104,6 +103,9 @@ type GitProvider interface {
 	// Returns the current username
 	CurrentUsername() string
 
+	// Returns the current user auth
+	UserAuth() auth.UserAuth
+
 	// Returns user info
 	UserInfo(username string) *v1.UserSpec
 }
@@ -125,6 +127,7 @@ type GitRepository struct {
 
 type GitPullRequest struct {
 	URL            string
+	Author         string
 	Owner          string
 	Repo           string
 	Number         *int
@@ -219,14 +222,6 @@ type GitWebHookArguments struct {
 // IsClosed returns true if the PullRequest has been closed
 func (pr *GitPullRequest) IsClosed() bool {
 	return pr.ClosedAt != nil
-}
-
-// NumberString returns the string representation of the PR number or empty string if its not yet defined
-func (pr *GitPullRequest) NumberString() string {
-	if pr.Number != nil {
-		return strconv.Itoa(*pr.Number)
-	}
-	return ""
 }
 
 func CreateProvider(server *auth.AuthServer, user *auth.UserAuth) (GitProvider, error) {
@@ -382,8 +377,13 @@ func (i *GitRepositoryInfo) CreateProviderForUser(server *auth.AuthServer, user 
 }
 
 func (i *GitRepositoryInfo) CreateProvider(authConfigSvc auth.AuthConfigService, gitKind string) (GitProvider, error) {
-	config := authConfigSvc.Config()
 	hostUrl := i.HostURLWithoutUser()
+	return CreateProviderForURL(authConfigSvc, gitKind, hostUrl)
+}
+
+// CreateProviderForURL creates the git provider for the given git kind and host URL
+func CreateProviderForURL(authConfigSvc auth.AuthConfigService, gitKind string, hostUrl string) (GitProvider, error) {
+	config := authConfigSvc.Config()
 	server := config.GetOrCreateServer(hostUrl)
 	url := server.URL
 	if gitKind != "" {

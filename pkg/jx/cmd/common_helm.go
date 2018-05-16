@@ -70,24 +70,19 @@ func (o *CommonOptions) registerLocalHelmRepo(repoName, ns string) error {
 
 // addHelmRepoIfMissing adds the given helm repo if its not already added
 func (o *CommonOptions) addHelmRepoIfMissing(helmUrl string, repoName string) error {
-	// lets check if we already have the helm repo installed or if we need to add it or remove + add it
-	text, err := o.getCommandOutput("", "helm", "repo", "list")
+	missing, err := o.isHelmRepoMissing(helmUrl)
 	if err != nil {
 		return err
 	}
-	lines := strings.Split(text, "\n")
-	for _, line := range lines {
-		t := strings.TrimSpace(line)
-		if t != "" {
-			fields := strings.Fields(t)
-			if len(fields) > 1 {
-				if fields[1] == helmUrl {
-					return nil
-				}
-			}
+	if missing {
+		fmt.Fprintf(o.Out, "Helm repository %s (%s) not found. Adding...\n", repoName, helmUrl)
+		err = o.runCommand("helm", "repo", "add", repoName, helmUrl)
+		if err == nil {
+			fmt.Fprintf(o.Out, "Succesfully added Helm repository %s.\n", repoName)
 		}
+		return err
 	}
-	return o.runCommand("helm", "repo", "add", repoName, helmUrl)
+	return nil
 }
 
 // installChart installs the given chart
@@ -161,4 +156,32 @@ func (*CommonOptions) FindHelmChart() (string, error) {
 		}
 	}
 	return "", nil
+}
+func (o *CommonOptions) isHelmRepoMissing(helmUrlString string) (bool, error) {
+	// lets check if we already have the helm repo installed or if we need to add it or remove + add it
+	text, err := o.getCommandOutput("", "helm", "repo", "list")
+	if err != nil {
+		return false, err
+	}
+	helmUrl, err := url.Parse(helmUrlString)
+	if err != nil {
+		return false, err
+	}
+	lines := strings.Split(text, "\n")
+	for _, line := range lines {
+		t := strings.TrimSpace(line)
+		if t != "" {
+			fields := strings.Fields(t)
+			if len(fields) > 1 {
+				localURL, err := url.Parse(fields[1])
+				if err != nil {
+					return false, err
+				}
+				if localURL.Host == helmUrl.Host {
+					return false, nil
+				}
+			}
+		}
+	}
+	return true, nil
 }

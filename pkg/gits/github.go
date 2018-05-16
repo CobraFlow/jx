@@ -363,6 +363,9 @@ func (p *GitHubProvider) UpdatePullRequestStatus(pr *GitPullRequest) error {
 	} else {
 		pr.LastCommitSha = ""
 	}
+	if pr.Author == "" && result.User != nil && result.User.Login != nil {
+		pr.Author = *result.User.Login
+	}
 	if result.Mergeable != nil {
 		pr.Mergeable = result.Mergeable
 	}
@@ -530,7 +533,7 @@ func (p *GitHubProvider) ValidateRepositoryName(org string, name string) error {
 	if err == nil {
 		return fmt.Errorf("Repository %s already exists", GitRepoName(org, name))
 	}
-	if r.StatusCode == 404 {
+	if r != nil && r.StatusCode == 404 {
 		return nil
 	}
 	return err
@@ -540,7 +543,7 @@ func (p *GitHubProvider) UpdateRelease(owner string, repo string, tag string, re
 	release := &github.RepositoryRelease{}
 	rel, r, err := p.Client.Repositories.GetReleaseByTag(p.Context, owner, repo, tag)
 
-	if r.StatusCode == 404 && !strings.HasPrefix(tag, "v") {
+	if r != nil && r.StatusCode == 404 && !strings.HasPrefix(tag, "v") {
 		// sometimes we prepend a v for example when using gh-release
 		// so lets make sure we don't create a double release
 		vtag := "v" + tag
@@ -567,7 +570,7 @@ func (p *GitHubProvider) UpdateRelease(owner string, repo string, tag string, re
 	if release.Body == nil && releaseInfo.Body != "" {
 		release.Body = &releaseInfo.Body
 	}
-	if r.StatusCode == 404 {
+	if r != nil && r.StatusCode == 404 {
 		fmt.Printf("No release found for %s/%s and tag %s so creating a new release\n", owner, repo, tag)
 		_, _, err = p.Client.Repositories.CreateRelease(p.Context, owner, repo, release)
 		return err
@@ -586,7 +589,7 @@ func (p *GitHubProvider) UpdateRelease(owner string, repo string, tag string, re
 
 func (p *GitHubProvider) GetIssue(org string, name string, number int) (*GitIssue, error) {
 	i, r, err := p.Client.Issues.Get(p.Context, org, name, number)
-	if r.StatusCode == 404 {
+	if r != nil && r.StatusCode == 404 {
 		return nil, nil
 	}
 	if err != nil {
@@ -618,7 +621,7 @@ func (p *GitHubProvider) searchIssuesWithOptions(org string, name string, opts *
 	answer := []*GitIssue{}
 	for {
 		issues, r, err := p.Client.Issues.ListByRepo(p.Context, org, name, opts)
-		if r.StatusCode == 404 {
+		if r != nil && r.StatusCode == 404 {
 			return answer, nil
 		}
 		if err != nil {
@@ -767,18 +770,22 @@ func (p *GitHubProvider) CurrentUsername() string {
 	return p.Username
 }
 
+func (p *GitHubProvider) UserAuth() auth.UserAuth {
+	return p.User
+}
+
 func (p *GitHubProvider) UserInfo(username string) *v1.UserSpec {
 	user, _, err := p.Client.Users.Get(p.Context, username)
-	if err != nil {
+	if user == nil || err != nil {
 		log.Error("Unable to fetch user info for " + username)
 		return nil
 	}
 
 	return &v1.UserSpec{
 		Username: username,
-		Name:     *user.Name,
-		ImageURL: *user.AvatarURL,
-		LinkURL:  *user.URL,
+		Name:     asText(user.Name),
+		ImageURL: asText(user.AvatarURL),
+		LinkURL:  asText(user.HTMLURL),
 	}
 }
 

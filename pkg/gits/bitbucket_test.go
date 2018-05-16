@@ -23,7 +23,7 @@ type BitbucketCloudProviderTestSuite struct {
 	provider *BitbucketCloudProvider
 }
 
-var router = util.Router{
+var bitbucketRouter = util.Router{
 	"/repositories/test-user": util.MethodMap{
 		"GET": "repos.json",
 	},
@@ -65,7 +65,7 @@ var router = util.Router{
 func (suite *BitbucketCloudProviderTestSuite) SetupSuite() {
 	suite.mux = http.NewServeMux()
 
-	for path, methodMap := range router {
+	for path, methodMap := range bitbucketRouter {
 		suite.mux.HandleFunc(path, util.GetMockAPIResponseFromFile("test_data/bitbucket", methodMap))
 	}
 
@@ -199,6 +199,18 @@ func (suite *BitbucketCloudProviderTestSuite) TestUpdatePullRequestStatus() {
 	err := suite.provider.UpdatePullRequestStatus(pr)
 
 	suite.Require().Nil(err)
+}
+
+func (suite *BitbucketCloudProviderTestSuite) TestGetPullRequest() {
+
+	pr, err := suite.provider.GetPullRequest(
+		"test-user",
+		"test-repo",
+		3,
+	)
+
+	suite.Require().Nil(err)
+	suite.Require().Equal(*pr.Number, 3)
 }
 
 func (suite *BitbucketCloudProviderTestSuite) TestPullRequestLastCommitStatus() {

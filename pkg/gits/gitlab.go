@@ -8,7 +8,7 @@ import (
 	"github.com/jenkins-x/jx/pkg/apis/jenkins.io/v1"
 	"github.com/jenkins-x/jx/pkg/auth"
 	"github.com/jenkins-x/jx/pkg/util"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/wbrefvem/go-gitlab"
 )
 
 type GitlabProvider struct {
@@ -103,9 +103,9 @@ func owner(org, username string) string {
 
 func (g *GitlabProvider) GetRepository(org, name string) (*GitRepository, error) {
 	pid := projectId(org, g.Username, name)
-	project, _, err := g.Client.Projects.GetProject(pid)
+	project, response, err := g.Client.Projects.GetProject(pid)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v", response.Request.URL)
 	}
 	return fromGitlabProject(project), nil
 }
@@ -163,7 +163,7 @@ func (g *GitlabProvider) ValidateRepositoryName(org, name string) error {
 	if err == nil {
 		return fmt.Errorf("repository %s already exists", pid)
 	}
-	if r.StatusCode == 404 {
+	if r != nil && r.StatusCode == 404 {
 		return nil
 	}
 	return err
@@ -195,6 +195,7 @@ func (g *GitlabProvider) CreatePullRequest(data *GitPullRequestArguments) (*GitP
 
 func fromMergeRequest(mr *gitlab.MergeRequest, owner, repo string) *GitPullRequest {
 	return &GitPullRequest{
+		Author: mr.Author.Username,
 		URL:    mr.WebURL,
 		Owner:  owner,
 		Repo:   repo,
@@ -437,6 +438,10 @@ func (p *GitlabProvider) ServerURL() string {
 
 func (p *GitlabProvider) CurrentUsername() string {
 	return p.Username
+}
+
+func (p *GitlabProvider) UserAuth() auth.UserAuth {
+	return p.User
 }
 
 func (p *GitlabProvider) UserInfo(username string) *v1.UserSpec {

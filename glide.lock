@@ -1,5 +1,5 @@
-hash: d2cb2b672df28d6374e03728b1cb87461b9a17ea276189282471d792ab902c59
-updated: 2018-04-17T18:22:40.529251827+01:00
+hash: 123952a0c16d42d8673b79adb96900a254c2ab38471ad47bd6cb0964d7672357
+updated: 2018-05-13T10:06:32.715280767+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -7,13 +7,13 @@ imports:
   - compute/metadata
   - internal
 - name: code.gitea.io/sdk
-  version: 142acef5ce79f78585afcce31748af46c72a3dea
+  version: 7fa627fa5d67d18c39d6dd3c6c4db836916bf234
   subpackages:
   - gitea
 - name: github.com/andygrunwald/go-jira
-  version: 7f227a275b41edf4802e14487c22f7d960a02488
+  version: 3225585b4494743be93502a691cd7ab23baa08b5
 - name: github.com/Azure/draft
-  version: 5b1e4336977c69414de0ac8d11af469b920a9281
+  version: 5adc007902e4fff81707af66b7250baef7eab59b
   subpackages:
   - pkg/draft/draftpath
   - pkg/draft/pack/repo
@@ -32,13 +32,13 @@ imports:
   - autorest/azure
   - autorest/date
 - name: github.com/beevik/etree
-  version: bef51f1103fddbb07ff517a3bd23b18417697fba
+  version: 9d7e8feddccb4ed1b8afb54e368bd323d2ff652c
 - name: github.com/blang/semver
   version: c5e971dbed7850a93c23aa6ff69db5771d8e23b3
 - name: github.com/BurntSushi/toml
   version: b26d9c308763d68093482582cea63d69be07a0f0
 - name: github.com/chromedp/cdproto
-  version: ad3a5240868fb8286c9b79ae4138abf87995ad9d
+  version: 308d93aa5a6623e69f21a8361ab2031555f4830c
   subpackages:
   - accessibility
   - animation
@@ -79,7 +79,7 @@ imports:
   - tethering
   - tracing
 - name: github.com/chromedp/chromedp
-  version: f683cfc4c190d6a24ca66ee436184b533fd126b8
+  version: 310d213f6f2630dc62a681d941727e6d10c907a2
   subpackages:
   - client
   - kb
@@ -95,7 +95,7 @@ imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
 - name: github.com/disintegration/imaging
-  version: 79acd08cea8365df9fc16cccaeb3509b4495e241
+  version: bbcee2f5c9d5e94ca42c8b50ec847fec64a6c134
 - name: github.com/fatih/color
   version: 570b54cabe6b8eb0bc2dfce68d964677d63b5260
 - name: github.com/fatih/structs
@@ -128,7 +128,7 @@ imports:
   - ptypes/duration
   - ptypes/timestamp
 - name: github.com/google/go-github
-  version: 64f8f21e24feb72595a384afcf66f9caa7106fbf
+  version: 8ea2e2657df890db8fb434a9274799d641bd698c
   subpackages:
   - github
 - name: github.com/google/go-querystring
@@ -154,6 +154,8 @@ imports:
   - pagination
 - name: github.com/gorilla/websocket
   version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
+- name: github.com/hashicorp/go-version
+  version: 23480c0665776210b5fbbac6eaaee40e3e6a96b7
 - name: github.com/hashicorp/golang-lru
   version: a0d98a5f288019575c6d1f4bb1573fef2d1fcdc4
   subpackages:
@@ -171,7 +173,7 @@ imports:
 - name: github.com/jbrukh/bayesian
   version: bf3f261f9a9c61145c60d47665b0518cc32c774f
 - name: github.com/Jeffail/gabs
-  version: 44cbc27138518b15305cb3eef220d04f2d641b9b
+  version: 7a0fed31069aba77993a518cc2f37b28ee7aa883
 - name: github.com/jenkins-x/chyle
   version: 68f7a93a63ec3c6485c01103b85f608d0dd2ca97
   subpackages:
@@ -185,7 +187,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 13f86432b882000a51c6e610c620974462691a97
 - name: github.com/kevinburke/ssh_config
-  version: 6c3af74fa5b59d325e597106f6ef94b9b413685c
+  version: 4fcc689beeab13c6dd7ab1d65cb9d7a1aeea9663
 - name: github.com/knq/sysutil
   version: 0218e141a794643e8c0fa283b9cd076fc0df662d
 - name: github.com/mailru/easyjson
@@ -209,9 +211,9 @@ imports:
 - name: github.com/mitchellh/go-homedir
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/nlopes/slack
-  version: 3472fa2dd0347a0d966feaf49d3e197d50e9576e
+  version: d8ac454a777b2593d818e3e634bb99245962c42b
 - name: github.com/Pallinder/go-randomdata
-  version: dab270d296c6c8fb98de3b4334bbd7d7b0ceca53
+  version: b073033ef5a7c42a3f188393575a0850919777a6
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/pelletier/go-buffruneio
@@ -219,7 +221,7 @@ imports:
 - name: github.com/pkg/browser
   version: c90ca0c84f15f81c982e32665bffd8d7aac8f097
 - name: github.com/pkg/errors
-  version: a22138067af1c4942683050411a841ade67fe1eb
+  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/russross/blackfriday
   version: 4048872b16cc0fc2c5fd9eacf0ed2c2fedaa0c8c
 - name: github.com/sergi/go-diff
@@ -233,7 +235,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
 - name: github.com/spf13/cobra
-  version: 615425954c3b0d9485a7027d4d451fdcdfdee84e
+  version: ef82de70bb3f60c65fb8eebacbb2d122ef517385
   subpackages:
   - doc
 - name: github.com/spf13/pflag
@@ -251,6 +253,8 @@ imports:
   - treflect
 - name: github.com/wbrefvem/go-bitbucket
   version: 822a62f68abbfe210f3e2fa7474c6fd5b3147d5e
+- name: github.com/wbrefvem/go-gitlab
+  version: efcfde92fb209d7bcb4d7497ab500d334483085e
 - name: github.com/xanzy/go-gitlab
   version: 3109bb13e379d3ada1ff1ca81557c6e7bce8e881
 - name: github.com/xanzy/ssh-agent
@@ -314,7 +318,7 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/appengine
-  version: 4f7eeb5305a4ba1966344836ba4af9996b7b4e05
+  version: 962cbd1200af94a5a35ba8d512e9f91271b4d01a
   subpackages:
   - internal
   - internal/app_identity
@@ -384,7 +388,7 @@ imports:
 - name: gopkg.in/warnings.v0
   version: ec4a0fea49c7b46c2aeb0b51aac55779c607e52b
 - name: gopkg.in/yaml.v2
-  version: 670d4cfef0544295bc27a114dbac37980d83185a
+  version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
 - name: k8s.io/api
   version: 73d903622b7391f3312dcbac6483fed484e185f8
   subpackages:
@@ -417,7 +421,7 @@ imports:
   - storage/v1alpha1
   - storage/v1beta1
 - name: k8s.io/apiextensions-apiserver
-  version: 21c5d578e97791111c1015a2b8281e6f3555c2b5
+  version: 446d16d8d4d1f00727abfb3921438d6e38b5bd6b
   subpackages:
   - pkg/apis/apiextensions
   - pkg/apis/apiextensions/v1beta1
@@ -532,7 +536,7 @@ imports:
   - util/jsonpath
   - util/retry
 - name: k8s.io/code-generator
-  version: c3013cad3acf45aae5adad77a4a1eefe2caf739f
+  version: 63b7d43c5bc626737ce6e5a996a633034ffe50ac
 - name: k8s.io/gengo
   version: 01a732e01d00cb9a81bb0ca050d3e6d2b947927b
 - name: k8s.io/helm
@@ -546,7 +550,7 @@ imports:
   - pkg/sympath
   - pkg/version
 - name: k8s.io/metrics
-  version: ce2480a71dc1efc665f45f498218d0cf7a133327
+  version: 13380cf3f68b2621c608c7a9cb1955cc1bdb2df0
   subpackages:
   - pkg/apis/metrics
   - pkg/apis/metrics/v1alpha1
